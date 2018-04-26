@@ -208,3 +208,11 @@ library(forestFloor)
 library(klaR)
 naiveModel <- naiveBayes(suspicious~., data = train)
 plot(naiveModel)
+
+
+suspSafe <- suspSparse %>% select() %>% filter(suspicious == "safe" && suspicious!="suspicious")
+str(suspSafe$suspicious)
+summary(suspSparse$suspicious)
+
+suspSafe <- subset(suspSparse,suspicious=="safe")
+summary(suspSparse$suspicious)
