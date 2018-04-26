@@ -97,9 +97,11 @@ library(Metrics)
 ((354+1614)/(354+1614+110+73))
 
 library(ROCR)
-ROCRpred <- prediction(logRegModelPred,test$suspicious)
-ROCRperf <- performance(ROCRpred,'tpr','fpr')
-plot(ROCRperf,colorize = TRUE, text.adj = c(-0.2,1.7))
+ROCRpredLogReg <- prediction(logRegModelPred,test$suspicious)
+ROCRperfLogReg <- performance(ROCRpredLogReg,'tpr','fpr')
+plot(ROCRperfLogReg,colorize = TRUE, text.adj = c(-0.2,1.7), main = "ROC curve for Logistic Regression")
+as.numeric(performance(ROCRpredLogReg, "auc")@y.values)
+#AUC: 0.8598295
 
 cartModel <- rpart(suspicious~., method = "class",data = train)
 prp(cartModel)
@@ -125,13 +127,25 @@ plot(cartCVModel)
 cartCVModelFinal <- rpart(suspicious~., cp = 0.0023, data = train, method = "class")
 prp(cartCVModelFinal)
 
+#ROC curve for CART
+ROCRCartCVFinal <- prediction(predict(cartCVModelFinal,type = "prob")[,2],train$suspicious)
+plot(performance(ROCRCartCVFinal,"tpr","fpr"),colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for optimized Classification Trees")
+
 set.seed(100)
 rfModel <- randomForest(suspicious~., data = train)
 rfModelPred <- predict(rfModel, newdata = test)
 table(rfModelPred, test$suspicious)
+ROCrf <- prediction(predict(rfModel,type = "prob")[,2],train$suspicious)
+plot(performance(ROCrf,"tpr","fpr"),colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for Random Forests")
+as.numeric(performance(ROCrf, "auc")@y.values)
+#AUC: 0.9715824
 
 plot(rfModel)
 #Accuracy: 93.67%
+
+
+
+
 (1637+378)/(1637+378+86+50)
 
 summary(rfModel)
@@ -145,7 +159,22 @@ plot(nbModel$finalModel)
 
 nbModelPred <- predict(nbModel, newdata = test)
 table(nbModelPred,test$suspicious)
+head(nbModelPred,10)
+nbPredNew <- prediction(predict(nbModel,type = "prob")[,2],train$suspicious)
+plot(performance(nbPredNew,"tpr","fpr"), colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for Naive Bayes")
+as.numeric(performance(nbPredNew, "auc")@y.values)
+#AUC: 0.8240945
 #Accuracy: 84.51%
+#Precision: 0.8636633
+#Recall: 0.9339744
+#Specificity: 0.6108291
+#F1-score: 0.8974438
+
+
+
+
+#ROCRpredNB <- prediction(nbModelPred[,1],test$suspicious)
+
 
 #nbModel2 <- train(suspicious~., data = train, method = "naive_bayes", tuneGrid = data.frame(fL=c(0,0.5,1.0), usekernel = TRUE, adjust=c(0,0.5,1.0), laplace = 0.5), trControl = trainControl)
 
@@ -202,7 +231,7 @@ tree_func <- function(final_model,
   print(plot)
 }
 
-library(forestFloor)
+#library(forestFloor)
 #plot(forestFloor(randomForest(suspicious~., data = train, keep.inbag = T), X = trai
 
 library(klaR)
@@ -216,3 +245,19 @@ summary(suspSparse$suspicious)
 
 suspSafe <- subset(suspSparse,suspicious=="safe")
 summary(suspSparse$suspicious)
+
+
+gbmModel <- train(suspicious~.,data = train, trControl = trainControl, method = "gbm",verbose = FALSE)
+gbmModelPred <- prediction(predict(gbmModel,type = "prob")[,2],train$suspicious)
+plot(performance(gbmModelPred,"tpr","fpr"), colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for Gradient Boosting")
+as.numeric(performance(gbmModelPred, "auc")@y.values)
+#AUC: 0.9625293
+
+gbmModelPredictions <- predict(gbmModel, newdata = test)
+table(gbmModelPredictions,test$suspicious)
+#Accuracy: 0.9046955
+#Specificity: 0.8509485
+#Sensitivity: 
+#Precision: 0.9673977
+#Recall:0.9158249
+#F1-scores: 2*(precision.recall)/(precision + recall) = 0.9409051
