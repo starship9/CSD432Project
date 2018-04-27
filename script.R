@@ -93,7 +93,11 @@ table(logRegModelPred>0.5,test$suspicious)
 library(Metrics)
 #mse(test$suspicious,logRegModelPred)
 
-#Accuracy: 91.49%
+#Accuracy: 0.9149233
+#Precision: 0.9361949
+#Recall:0.9567279
+#Specificity:0.762931
+#F1 score:0.94635
 ((354+1614)/(354+1614+110+73))
 
 library(ROCR)
@@ -109,7 +113,16 @@ fancyRpartPlot(cartModel,type = 2, cex = 0.6)
 cartModelPred <- predict(cartModel,newdata = test,type = "class")
 table(cartModelPred,test$suspicious)
 
-#Accuracy: 87.2%
+cartModelROCPred <- prediction(predict(cartModel,type = "prob")[,2],train$suspicious)
+plot(performance(cartModelROCPred,"tpr","fpr"),colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for Classification Trees")
+as.numeric(performance(cartModelROCPred, "auc")@y.values)
+
+#AUC: 0.8241452
+#Accuracy: 0.8721525
+#Precision: 0.9632484 
+#Recall:0.8841132
+#Specificity: 0.8019169
+#F1 score:0.9219858
 (1625+251)/(1625+251+213+62)
 
 #10-fold cross validation
@@ -141,8 +154,11 @@ as.numeric(performance(ROCrf, "auc")@y.values)
 #AUC: 0.9715824
 
 plot(rfModel)
-#Accuracy: 93.67%
-
+#Accuracy: 0.9381683
+#Precision: 0.9727327
+#Recall: 0.9496528
+#Specificity: 0.891253
+#F1 score: 0.9610542
 
 
 
@@ -164,7 +180,7 @@ nbPredNew <- prediction(predict(nbModel,type = "prob")[,2],train$suspicious)
 plot(performance(nbPredNew,"tpr","fpr"), colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for Naive Bayes")
 as.numeric(performance(nbPredNew, "auc")@y.values)
 #AUC: 0.8240945
-#Accuracy: 84.51%
+#Accuracy: 0.8451883
 #Precision: 0.8636633
 #Recall: 0.9339744
 #Specificity: 0.6108291
@@ -261,3 +277,16 @@ table(gbmModelPredictions,test$suspicious)
 #Precision: 0.9673977
 #Recall:0.9158249
 #F1-scores: 2*(precision.recall)/(precision + recall) = 0.9409051
+algoNames <- c("Logistic Regression","Classification Trees","Random Forests","Naive Bayes","Gradient Boost")
+auc <-as.numeric(c(0.8598295,0.8241452,0.9715824,0.8240945,0.9625293))
+accuracy <- as.numeric(c(0.9149233,0.8721525,0.9381683,0.8451883,0.9046955))
+precision <- as.numeric(c(0.9361949,0.9632484,0.9727327,0.8636633,0.9673977))
+recall <- as.numeric(c(0.9567279,0.8841132,0.9496528,0.9339744,0.9158249))
+specificity <- as.numeric(c(0.762931,0.8019169,0.891253,0.6108291,0.8509485))
+f1Score <- as.numeric(c(0.94635,0.9219858,0.9610542,0.8974438,0.9409051))
+
+algoDF <- data.frame(auc,accuracy,precision,recall,specificity,f1Score)
+rownames(algoDF) <- algoNames
+head(algoDF)
+colnames(algoDF) <- c("auc","accuracy","precision","recall","specificity","f1score")
+write.csv(algoDF,file = "metrics.csv")
