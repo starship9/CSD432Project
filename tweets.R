@@ -46,11 +46,12 @@ tweetsSparse$suspicious <- tweets$class
 class(sparse)
 
 set.seed(100)
-wordcloud(finalCorpus,min.freq = 350,max.words = 300,random.order = FALSE,scale = c(0.5,1),random.color = FALSE,colors = brewer.pal(9,"Spectral"))
+wordcloud(finalCorpus, min.freq = 400,random.order = FALSE,random.color = FALSE,colors = brewer.pal(9,"Spectral"),scale = c(3,1))
+
 
 library(tidyverse)
 
-finalDFTokens <- finalDF %>% unnest_tokens(word,text) %>% count(suspicious,word,sort = TRUE) %>% ungroup()
+finalDFTokens <- finalDF %>% unnest_tokens(word,text) %>% anti_join(stop_words) %>% count(suspicious,word,sort = TRUE) %>% ungroup()
 tail(finalDFTokens)
 head(finalDFTokens)
 
@@ -63,4 +64,4 @@ finalDFTokens
 
 finalDFTokens %>% select(-total) %>% arrange(desc(tf_idf))
 
-finalDFTokens %>% arrange(desc(tf_idf)) %>% mutate(word = factor(word,levels = rev(unique(word)))) %>% group_by(suspicious) %>% top_n(15) %>% ungroup %>% ggplot(aes(word,tf_idf,fill = suspicious))+geom_col(show.legend = FALSE)+labs(x = NULL,y = "tf-idf")+facet_wrap(~suspicious,ncol = 2,scales = "free")+coord_flip()
+finalDFTokens %>% arrange(desc(tf_idf)) %>% mutate(word = factor(word,levels = rev(unique(word)))) %>% group_by(suspicious) %>% top_n(40) %>% ungroup %>% ggplot(aes(word,tf_idf,fill = suspicious))+geom_col(show.legend = FALSE)+labs(x = NULL,y = "tf-idf")+facet_wrap(~suspicious,ncol = 2,scales = "free")+coord_flip()
