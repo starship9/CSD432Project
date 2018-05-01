@@ -137,9 +137,11 @@ cartCVModel <- train(suspicious~.,data = train, trControl = trainControl, method
 cartCVModel
 plot(cartCVModel)
 
-cartCVModelFinal <- rpart(suspicious~., cp = 0.0023, data = train, method = "class")
+cartCVModelFinal <- rpart(suspicious~., cp = 0.0015, data = train, method = "class")
 prp(cartCVModelFinal)
 
+cartCVModelPreds <- predict(cartCVModelFinal,newdata = test, type = "class")
+table(cartCVModelPreds,test$suspicious)
 #ROC curve for CART
 ROCRCartCVFinal <- prediction(predict(cartCVModelFinal,type = "prob")[,2],train$suspicious)
 plot(performance(ROCRCartCVFinal,"tpr","fpr"),colorize = TRUE, text.adj = c(-0.2,1.7),main = "ROC curve for optimized Classification Trees")
@@ -277,16 +279,16 @@ table(gbmModelPredictions,test$suspicious)
 #Precision: 0.9673977
 #Recall:0.9158249
 #F1-scores: 2*(precision.recall)/(precision + recall) = 0.9409051
-algoNames <- c("Logistic Regression","Classification Trees","Random Forests","Naive Bayes","Gradient Boost")
-auc <-as.numeric(c(0.8598295,0.8241452,0.9715824,0.8240945,0.9625293))
-accuracy <- as.numeric(c(0.9149233,0.8721525,0.9381683,0.8451883,0.9046955))
-precision <- as.numeric(c(0.9361949,0.9632484,0.9727327,0.8636633,0.9673977))
-recall <- as.numeric(c(0.9567279,0.8841132,0.9496528,0.9339744,0.9158249))
-specificity <- as.numeric(c(0.762931,0.8019169,0.891253,0.6108291,0.8509485))
-f1Score <- as.numeric(c(0.94635,0.9219858,0.9610542,0.8974438,0.9409051))
+algoNames <- c("Logistic Regression","Classification Trees","Random Forests","Naive Bayes","Gradient Boost","Optimized Classification Trees")
+auc <-as.numeric(c(0.8598295,0.8241452,0.9715824,0.8240945,0.9625293,0.9336971))
+accuracy <- as.numeric(c(0.9149233,0.8721525,0.9381683,0.8451883,0.9046955,0.8995816))
+precision <- as.numeric(c(0.9361949,0.9632484,0.9727327,0.8636633,0.9673977,0.951393))
+recall <- as.numeric(c(0.9567279,0.8841132,0.9496528,0.9339744,0.9158249,0.9229442))
+specificity <- as.numeric(c(0.762931,0.8019169,0.891253,0.6108291,0.8509485,0.8009709))
+f1Score <- as.numeric(c(0.94635,0.9219858,0.9610542,0.8974438,0.9409051,0.9369527))
 
 algoDF <- data.frame(auc,accuracy,precision,recall,specificity,f1Score)
 rownames(algoDF) <- algoNames
 head(algoDF)
 colnames(algoDF) <- c("auc","accuracy","precision","recall","specificity","f1score")
-write.csv(algoDF,file = "metrics.csv")
+write.csv(algoDF,file = "Data/metrics.csv")
